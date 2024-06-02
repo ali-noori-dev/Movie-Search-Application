@@ -1,24 +1,41 @@
 import { useState } from "react";
 import { IoIosSearch } from "react-icons/io";
-
-const inputCn =
-  "w-full h-12 focus:outline-primary rounded-xl py-3 pl-4 pr-10 leading-normal transition-colors duration-200 text-gray-600 placeholder-gray-500 border border-gray-300";
+import { searchMovies } from "../api";
+import { toastService } from "../toast";
+import { Movie } from "../types";
+import { Autocomplete } from "./autocomplete";
+import { MovieOption } from "./movieOption";
 
 export function SearchComponent() {
-  const [value, setValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [page, setPage] = useState(1);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const handleSearch = async () => {
+    try {
+      setIsFetching(true);
+      const results = await searchMovies(searchTerm);
+      setMovies(results);
+    } catch (error) {
+      toastService.error(error as string);
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   return (
-    <div className="relative w-1/2 m-auto">
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Search Movies"
-        className={inputCn}
-      />
-
-      <span className="absolute top-1/2 -translate-y-1/2 right-4">
-        <IoIosSearch />
-      </span>
-    </div>
+    <Autocomplete
+      placeholder="Search Movies"
+      searchTerm={searchTerm}
+      onSearchTermChange={setSearchTerm}
+      fetchOptions={searchMovies}
+      endIcon={<IoIosSearch />}
+      getOptionView={(option) => <MovieOption data={option} />}
+      onSelectOption={(option) => {
+        setSearchTerm(option.Title);
+        handleSearch();
+      }}
+    />
   );
 }
