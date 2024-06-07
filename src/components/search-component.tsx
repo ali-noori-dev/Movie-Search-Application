@@ -7,9 +7,12 @@ import { MovieOption } from "./movieOption";
 export function SearchComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-  const { data, loading, fetchData } = useFetch<OMDbList>();
+  const { data, loading, fetchData, resetData } = useFetch<OMDbList>();
 
-  const fetchItems = () => fetchData({ endpoint: `s=${searchTerm}` });
+  const fetchItems = () => {
+    if (searchTerm) fetchData({ endpoint: `s=${searchTerm}` });
+    else resetData();
+  };
 
   return (
     <Autocomplete
@@ -19,6 +22,7 @@ export function SearchComponent() {
       options={data?.Search ?? []}
       fetchOptions={fetchItems}
       getOptionView={(option) => <MovieOption data={option} />}
+      loading={loading}
       onSelectOption={(option) => {
         // setSearchTerm(option.Title);
         // handleSearch();

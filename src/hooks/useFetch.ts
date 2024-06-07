@@ -12,6 +12,7 @@ interface UseFetchResult<T> {
   data: T | null;
   loading: boolean;
   fetchData: (request: FetchRequest) => void;
+  resetData: VoidFunction;
 }
 
 interface FetchRequest {
@@ -27,10 +28,13 @@ const isErrorResponse = (result): result is ErrorResponse =>
 
 export function useFetch<T>(): UseFetchResult<T> {
   const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const resetData = () => setData(null);
 
   const fetchData = async ({ endpoint, options }: FetchRequest) => {
     setLoading(true);
+    setData(null);
 
     try {
       const response = await fetch(`${baseURL}?apikey=${apiKey}&${endpoint}`, {
@@ -54,5 +58,5 @@ export function useFetch<T>(): UseFetchResult<T> {
     }
   };
 
-  return { data, loading, fetchData };
+  return { data, loading, fetchData, resetData };
 }

@@ -1,5 +1,7 @@
+import Lottie from "lottie-react";
 import { useEffect, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
+import loadingItems from "../../public/lottie/LoadingItems.json";
 
 interface AutocompleteProps<T> {
   placeholder: string;
@@ -9,10 +11,14 @@ interface AutocompleteProps<T> {
   onSelectOption: (option: T) => void;
   getOptionView: (option: T) => React.ReactNode;
   fetchOptions: VoidFunction;
+  loading: boolean;
 }
 
 const inputCn =
   "w-full h-12 focus:outline-primary rounded-xl py-3 pl-4 pr-10 leading-normal transition-colors duration-200 text-gray-600 placeholder-gray-500 border border-gray-300";
+
+const optionsCn =
+  "absolute z-10 w-full bg-white shadow-lg rounded-b-xl max-h-[400px] overflow-auto";
 
 export function Autocomplete<T>({
   inputValue,
@@ -22,6 +28,7 @@ export function Autocomplete<T>({
   getOptionView,
   fetchOptions,
   placeholder,
+  loading,
 }: AutocompleteProps<T>) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -30,12 +37,8 @@ export function Autocomplete<T>({
 
   // Trigger the fetchOptions API call when the search term changes
   useEffect(() => {
-    const loadOptions = async () => {
-      if (inputValue) fetchOptions();
-    };
-
     // Set a timeout of 700 ms before triggering the API call because we want to search only when the user has typed the whole search query
-    const searchTimeout = setTimeout(loadOptions, 700);
+    const searchTimeout = setTimeout(fetchOptions, 700);
 
     return () => clearTimeout(searchTimeout); // Cleanup timeout on unmount or searchTerm change
   }, [inputValue]);
@@ -57,8 +60,17 @@ export function Autocomplete<T>({
         </span>
       </div>
 
-      {isFocused && (
-        <ul className="absolute z-10 w-full bg-white shadow-lg rounded-b-xl max-h-[400px] overflow-auto">
+      {loading && (
+        <div className={optionsCn}>
+          <Lottie
+            animationData={loadingItems}
+            style={{ width: "60%", margin: "auto" }}
+          />
+        </div>
+      )}
+
+      {isFocused && !loading && (
+        <ul className={optionsCn}>
           {options.map((option, index) => (
             <li
               key={index}
