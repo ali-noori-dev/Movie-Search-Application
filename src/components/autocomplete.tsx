@@ -1,81 +1,75 @@
 import { useEffect, useState } from "react";
-import { toastService } from "../toast";
+import { IoIosSearch } from "react-icons/io";
 
 interface AutocompleteProps<T> {
   placeholder: string;
-  searchTerm: string;
-  onSearchTermChange: (newTerm: string) => void;
+  options: T[];
+  inputValue: string;
+  onInputChange: (newTerm: string) => void;
   onSelectOption: (option: T) => void;
   getOptionView: (option: T) => React.ReactNode;
-  fetchOptions: (term: string) => Promise<T[]>;
-  endIcon?: JSX.Element;
+  fetchOptions: VoidFunction;
 }
 
 const inputCn =
   "w-full h-12 focus:outline-primary rounded-xl py-3 pl-4 pr-10 leading-normal transition-colors duration-200 text-gray-600 placeholder-gray-500 border border-gray-300";
 
 export function Autocomplete<T>({
-  searchTerm,
-  onSearchTermChange,
+  inputValue,
+  options,
+  onInputChange,
   onSelectOption,
   getOptionView,
   fetchOptions,
-  endIcon,
   placeholder,
 }: AutocompleteProps<T>) {
-  const [options, setOptions] = useState<T[]>([]);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleFocus = () => setIsFocused(true);
+  const handleBlur = () => setIsFocused(false);
 
   // Trigger the fetchOptions API call when the search term changes
   useEffect(() => {
     const loadOptions = async () => {
-      if (searchTerm) {
-        try {
-          const results = await fetchOptions(searchTerm);
-          setOptions(results);
-        } catch (error) {
-          console.error("Failed to fetch options:", error);
-          toastService.error("Failed to fetch options");
-        }
-      } else setOptions([]);
+      if (inputValue) fetchOptions();
     };
 
     // Set a timeout of 700 ms before triggering the API call because we want to search only when the user has typed the whole search query
     const searchTimeout = setTimeout(loadOptions, 700);
 
     return () => clearTimeout(searchTimeout); // Cleanup timeout on unmount or searchTerm change
-  }, [searchTerm, fetchOptions]);
+  }, [inputValue]);
 
   return (
     <div className="relative w-1/2 m-auto">
       <div className="relative">
         <input
-          value={searchTerm}
-          onChange={(e) => onSearchTermChange(e.target.value)}
+          value={inputValue}
+          onChange={(e) => onInputChange(e.target.value)}
           placeholder={placeholder}
           className={inputCn}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
         />
 
-        {endIcon && (
-          <span className="absolute top-1/2 -translate-y-1/2 right-4">
-            {endIcon}
-          </span>
-        )}
+        <span className="absolute top-1/2 -translate-y-1/2 right-4">
+          {<IoIosSearch />}
+        </span>
       </div>
 
-      <ul className="absolute z-10 w-full bg-white shadow-lg rounded-b-xl max-h-[400px] overflow-auto">
-        {options.map((option, index) => (
-          <li
-            key={index}
-            className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-            onClick={() => {
-              onSelectOption(option);
-              setOptions([]);
-            }}
-          >
-            {getOptionView(option)}
-          </li>
-        ))}
-      </ul>
+      {isFocused && (
+        <ul className="absolute z-10 w-full bg-white shadow-lg rounded-b-xl max-h-[400px] overflow-auto">
+          {options.map((option, index) => (
+            <li
+              key={index}
+              className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+              onClick={() => onSelectOption(option)}
+            >
+              {getOptionView(option)}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

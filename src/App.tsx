@@ -5,7 +5,7 @@ import { Router } from "./router";
 function App() {
   return (
     <div>
-      <ToastContainer theme="colored" rtl position="bottom-left" />
+      <ToastContainer theme="colored" position="bottom-right" />
       <HashRouter>
         <Router />
       </HashRouter>

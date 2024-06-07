@@ -1,40 +1,27 @@
 import { useState } from "react";
-import { IoIosSearch } from "react-icons/io";
-import { searchMovies } from "../api";
-import { toastService } from "../toast";
-import { Movie } from "../types";
+import { useFetch } from "../hooks";
+import { OMDbList } from "../types";
 import { Autocomplete } from "./autocomplete";
 import { MovieOption } from "./movieOption";
 
 export function SearchComponent() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [movies, setMovies] = useState<Movie[]>([]);
   const [page, setPage] = useState(1);
-  const [isFetching, setIsFetching] = useState(false);
+  const { data, loading, fetchData } = useFetch<OMDbList>();
 
-  const handleSearch = async () => {
-    try {
-      setIsFetching(true);
-      const results = await searchMovies(searchTerm);
-      setMovies(results);
-    } catch (error) {
-      toastService.error(error as string);
-    } finally {
-      setIsFetching(false);
-    }
-  };
+  const fetchItems = () => fetchData({ endpoint: `s=${searchTerm}` });
 
   return (
     <Autocomplete
       placeholder="Search Movies"
-      searchTerm={searchTerm}
-      onSearchTermChange={setSearchTerm}
-      fetchOptions={searchMovies}
-      endIcon={<IoIosSearch />}
+      inputValue={searchTerm}
+      onInputChange={setSearchTerm}
+      options={data?.Search ?? []}
+      fetchOptions={fetchItems}
       getOptionView={(option) => <MovieOption data={option} />}
       onSelectOption={(option) => {
-        setSearchTerm(option.Title);
-        handleSearch();
+        // setSearchTerm(option.Title);
+        // handleSearch();
       }}
     />
   );

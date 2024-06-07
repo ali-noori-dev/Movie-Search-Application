@@ -8,9 +8,14 @@ export interface Movie {
 
 type Response = "False" | "True";
 
-export interface OMDbResponse {
+export interface OMDbList {
   Search: Movie[];
   totalResults: string;
   Response: Response;
   Error?: string;
+}
+
+export interface ErrorResponse {
+  Response: "False";
+  Error: string;
 }
